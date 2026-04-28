@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expense Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f0f11;
+      --surface:   #17171a;
+      --border:    #2a2a2f;
+      --accent:    #00e5a0;
+      --accent-dim:#00b87d;
+      --danger:    #ff5c5c;
+      --text:      #e8e8ec;
+      --muted:     #6b6b7a;
+      --mono:      'IBM Plex Mono', monospace;
+      --sans:      'DM Sans', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* ── HEADER ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: rgba(15,15,17,0.92);
+      backdrop-filter: blur(12px);
+      z-index: 100;
+    }
+    .logo {
+      font-family: var(--mono);
+      font-size: 14px;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .total-badge {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .total-badge span {
+      color: var(--accent);
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    /* ── LAYOUT ── */
+    .main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 32px;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+    }
+    .card-title {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-family: var(--mono);
+      margin-bottom: 24px;
+    }
+
+    /* ── FORM ── */
+    .field { margin-bottom: 16px; }
+    label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-family: var(--mono);
+      margin-bottom: 6px;
+    }
+    input, select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+    input::placeholder { color: var(--muted); }
+    select option { background: var(--surface); }
+
+    .amount-wrap { position: relative; }
+    .amount-wrap input { padding-left: 30px; }
+    .rupee {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    .err-msg {
+      font-size: 11px;
+      color: var(--danger);
+      margin-top: 4px;
+      font-family: var(--mono);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      color: #0f0f11;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+      margin-top: 8px;
+      position: relative;
+    }
+    .btn-primary:hover { background: var(--accent-dim); }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .spinner {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .success-flash {
+      background: rgba(0,229,160,0.1);
+      border: 1px solid var(--accent);
+      border-radius: 7px;
+      padding: 10px 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      margin-top: 12px;
+      animation: fadeOut 2.5s forwards;
+    }
+    @keyframes fadeOut { 0%,60%{opacity:1} 100%{opacity:0} }
+
+    /* ── RIGHT PANEL ── */
+    .panel-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .filter-row {
+      display: flex;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+    .filter-row select { font-size: 13px; }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { border-bottom: 1px solid var(--border); }
+    th {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 12px 16px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    td {
+      padding: 13px 16px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .cat-chip {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-family: var(--mono);
+      background: rgba(0,229,160,0.12);
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .amt {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text);
+    }
+    .date-cell {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+    .empty-state .icon { font-size: 32px; margin-bottom: 12px; opacity: 0.5; }
+
+    .loading-row td {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    /* ── SUMMARY ── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .summary-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .summary-item .s-cat {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--mono);
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .summary-item .s-amt {
+      font-family: var(--mono);
+      font-size: 15px;
+      color: var(--accent);
+    }
+
+    .api-error {
+      background: rgba(255,92,92,0.1);
+      border: 1px solid var(--danger);
+      border-radius: 7px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--danger);
+      font-family: var(--mono);
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .main { grid-template-columns: 1fr; padding: 20px 16px; }
+      header { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">// expense tracker</div>
+  <div class="total-badge" id="header-total">Total: <span>₹0.00</span></div>
+</header>
+
+<div class="main">
+  <!-- ADD FORM -->
+  <div>
+    <div class="card">
+      <div class="card-title">New Expense</div>
+
+      <div id="form-error" class="api-error" style="display:none"></div>
+      <div id="form-success" style="display:none"></div>
+
+      <div class="field">
+        <label>Amount (₹)</label>
+        <div class="amount-wrap">
+          <span class="rupee">₹</span>
+          <input type="number" id="f-amount" placeholder="0.00" min="0.01" step="0.01" />
+        </div>
+        <div class="err-msg" id="err-amount"></div>
+      </div>
+
+      <div class="field">
+        <label>Category</label>
+        <input type="text" id="f-category" placeholder="Food, Transport, Utilities…" list="cat-suggestions" />
+        <datalist id="cat-suggestions">
+          <option value="Food">
+          <option value="Transport">
+          <option value="Utilities">
+          <option value="Entertainment">
+          <option value="Health">
+          <option value="Shopping">
+          <option value="Other">
+        </datalist>
+        <div class="err-msg" id="err-category"></div>
+      </div>
+
+      <div class="field">
+        <label>Description</label>
+        <input type="text" id="f-description" placeholder="What was this for?" />
+      </div>
+
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="f-date" />
+        <div class="err-msg" id="err-date"></div>
+      </div>
+
+      <button class="btn-primary" id="submit-btn" onclick="submitExpense()">
+        Add Expense
+      </button>
+    </div>
+
+    <!-- CATEGORY SUMMARY -->
+    <div class="card" style="margin-top:20px">
+      <div class="card-title">By Category</div>
+      <div class="summary-grid" id="summary-grid">
+        <div style="color:var(--muted);font-size:12px;font-family:var(--mono)">No data yet</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPENSE LIST -->
+  <div>
+    <div class="panel-head">
+      <div class="filter-row">
+        <select id="filter-category" onchange="loadExpenses()">
+          <option value="">All Categories</option>
+        </select>
+        <select id="filter-sort" onchange="loadExpenses()">
+          <option value="date_desc">Newest First</option>
+          <option value="">Created Order</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="list-error" class="api-error" style="display:none"></div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th style="text-align:right">Amount</th>
+          </tr>
+        </thead>
+        <tbody id="expense-tbody">
+          <tr class="loading-row"><td colspan="4">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── CONFIG ──────────────────────────────────────────────────────────────
+  // Use the local backend during development.
+  // When deployed, replace this with your actual backend URL.
+  const API_BASE = 'http://127.0.0.1:8000';
+
+  // ── STATE ─────────────────────────────────────────────────────────────────
+  let expenses = [];
+  let submitting = false;
+
+  // ── INIT ─────────────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+    loadExpenses();
+    loadCategories();
+  });
+
+  // ── LOAD EXPENSES ─────────────────────────────────────────────────────────
+  async function loadExpenses() {
+    const category = document.getElementById('filter-category').value;
+    const sort     = document.getElementById('filter-sort').value;
+
+    const params = new URLSearchParams();
+    if (category) params.set('category', category);
+    if (sort)     params.set('sort', sort);
+
+    setListError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/expenses?${params}`);
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
+      expenses = await res.json();
+      renderExpenses();
+      updateSummary();
+    } catch (e) {
+      setListError('Failed to load expenses. Is the backend running?');
+      document.getElementById('expense-tbody').innerHTML =
+        `<tr class="loading-row"><td colspan="4">Could not load data.</td></tr>`;
+    }
+  }
+
+  // ── LOAD CATEGORIES ───────────────────────────────────────────────────────
+  async function loadCategories() {
+    try {
+      const res = await fetch(`${API_BASE}/expenses/categories`);
+      if (!res.ok) return;
+      const cats = await res.json();
+      const sel = document.getElementById('filter-category');
+      [...sel.options].slice(1).forEach(o => o.remove());
+      cats.forEach(c => {
+        const opt = new Option(c, c);
+        sel.add(opt);
+      });
+      const dl = document.getElementById('cat-suggestions');
+      cats.forEach(c => {
+        if (![...dl.options].find(o => o.value === c)) {
+          const opt = document.createElement('option');
+          opt.value = c;
+          dl.appendChild(opt);
+        }
+      });
+    } catch (_) {}
+  }
+
+  // ── RENDER TABLE ──────────────────────────────────────────────────────────
+  function renderExpenses() {
+    const tbody = document.getElementById('expense-tbody');
+
+    if (!expenses.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="4">
+            <div class="empty-state">
+              <div class="icon">₹</div>
+              No expenses yet. Add one above.
+            </div>
+          </td>
+        </tr>`;
+      updateHeaderTotal(0);
+      return;
+    }
+
+    let total = 0;
+    tbody.innerHTML = expenses.map(e => {
+      total += parseFloat(e.amount);
+      return `
+        <tr>
+          <td class="date-cell">${formatDate(e.date)}</td>
+          <td><span class="cat-chip">${escHtml(e.category)}</span></td>
+          <td style="color:var(--muted)">${escHtml(e.description) || '—'}</td>
+          <td class="amt" style="text-align:right">₹${numberWithCommas(parseFloat(e.amount).toFixed(2))}</td>
+        </tr>`;
+    }).join('');
+
+    updateHeaderTotal(total);
+  }
+
+  function updateHeaderTotal(total) {
+    document.getElementById('header-total').innerHTML =
+      `Total: <span>₹${numberWithCommas(total.toFixed(2))}</span>`;
+  }
+
+  // ── CATEGORY SUMMARY ──────────────────────────────────────────────────────
+  function updateSummary() {
+    const grid = document.getElementById('summary-grid');
+    if (!expenses.length) {
+      grid.innerHTML = `<div style="color:var(--muted);font-size:12px;font-family:var(--mono)">No data yet</div>`;
+      return;
+    }
+
+    const totals = {};
+    expenses.forEach(e => {
+      totals[e.category] = (totals[e.category] || 0) + parseFloat(e.amount);
+    });
+
+    grid.innerHTML = Object.entries(totals)
+      .sort((a, b) => b[1] - a[1])
+      .map(([cat, amt]) => `
+        <div class="summary-item">
+          <div class="s-cat">${escHtml(cat)}</div>
+          <div class="s-amt">₹${numberWithCommas(amt.toFixed(2))}</div>
+        </div>`).join('');
+  }
+
+  // ── SUBMIT ────────────────────────────────────────────────────────────────
+  async function submitExpense() {
+    if (submitting) return;
+
+    clearErrors();
+    const amount      = document.getElementById('f-amount').value.trim();
+    const category    = document.getElementById('f-category').value.trim();
+    const description = document.getElementById('f-description').value.trim();
+    const date        = document.getElementById('f-date').value;
+
+    let valid = true;
+    if (!amount || parseFloat(amount) <= 0) {
+      setFieldError('err-amount', 'Enter a positive amount');
+      valid = false;
+    }
+    if (!category) {
+      setFieldError('err-category', 'Category is required');
+      valid = false;
+    }
+    if (!date) {
+      setFieldError('err-date', 'Date is required');
+      valid = false;
+    }
+    if (!valid) return;
+
+    const idempotencyKey = crypto.randomUUID();
+
+    setSubmitting(true);
+    setFormError(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/expenses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, category, description, date, idempotency_key: idempotencyKey }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.detail?.[0]?.msg || body?.detail || `Server error ${res.status}`);
+      }
+
+      document.getElementById('f-amount').value = '';
+      document.getElementById('f-description').value = '';
+      document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+
+      showSuccess();
+      await loadExpenses();
+      await loadCategories();
+
+    } catch (e) {
+      setFormError(e.message || 'Failed to add expense. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  // ── UI HELPERS ────────────────────────────────────────────────────────────
+  function setSubmitting(val) {
+    submitting = val;
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = val;
+    btn.innerHTML = val
+      ? `<span class="spinner"></span>Adding…`
+      : 'Add Expense';
+  }
+
+  function clearErrors() {
+    ['err-amount','err-category','err-date'].forEach(id => {
+      document.getElementById(id).textContent = '';
+    });
+    setFormError(null);
+  }
+
+  function setFieldError(id, msg) {
+    document.getElementById(id).textContent = msg;
+  }
+
+  function setFormError(msg) {
+    const el = document.getElementById('form-error');
+    if (msg) { el.textContent = msg; el.style.display = 'block'; }
+    else el.style.display = 'none';
+  }
+
+  function setListError(msg) {
+    const el = document.getElementById('list-error');
+    if (msg) { el.textContent = msg; el.style.display = 'block'; }
+    else el.style.display = 'none';
+  }
+
+  function showSuccess() {
+    const el = document.getElementById('form-success');
+    el.className = 'success-flash';
+    el.textContent = '✓ Expense added';
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 2600);
+  }
+
+  function formatDate(iso) {
+    const [y, m, d] = iso.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${d} ${months[parseInt(m)-1]} ${y}`;
+  }
+
+  function numberWithCommas(x) {
+    const parts = x.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>

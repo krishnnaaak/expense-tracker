@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+.env
+venv/
+.venv/
+Pipfile.lock
+
+# SQLite
+*.db
+*.sqlite3
+
+# Editor and OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Python server logs
+*.log
+
+# Test caches
+.pytest_cache/
+
+# Node modules
+node_modules/

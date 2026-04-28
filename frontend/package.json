@@ -1,0 +1,9 @@
+{
+  "name": "expense-tracker-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static frontend for Expense Tracker",
+  "scripts": {
+    "start": "serve ."
+  }
+}
