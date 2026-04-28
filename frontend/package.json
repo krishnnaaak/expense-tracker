@@ -4,6 +4,7 @@
   "private": true,
   "description": "Static frontend for Expense Tracker",
   "scripts": {
+    "dev": "npx serve .",
     "start": "serve ."
   }
 }

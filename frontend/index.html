@@ -442,7 +442,8 @@
       renderExpenses();
       updateSummary();
     } catch (e) {
-      setListError('Failed to load expenses. Is the backend running?');
+  console.error("Fetch error:", e);
+  setListError(`Failed to load expenses: ${e.message}`);
       document.getElementById('expense-tbody').innerHTML =
         `<tr class="loading-row"><td colspan="4">Could not load data.</td></tr>`;
     }
@@ -494,7 +495,7 @@
       total += parseFloat(e.amount);
       return `
         <tr>
-          <td class="date-cell">${formatDate(e.date)}</td>
+          <td class="date-cell">${formatDate(e.created_at)}</td>
           <td><span class="cat-chip">${escHtml(e.category)}</span></td>
           <td style="color:var(--muted)">${escHtml(e.description) || '—'}</td>
           <td class="amt" style="text-align:right">₹${numberWithCommas(parseFloat(e.amount).toFixed(2))}</td>
@@ -630,10 +631,22 @@
   }
 
   function formatDate(iso) {
-    const [y, m, d] = iso.split('-');
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return `${d} ${months[parseInt(m)-1]} ${y}`;
-  }
+  const date = new Date(iso);
+
+  const day = date.getDate().toString().padStart(2, '0');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+
+  let hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+
+  return `${day} ${month} ${year}, ${hours}:${minutes} ${ampm}`;
+}
 
   function numberWithCommas(x) {
     const parts = x.split('.');

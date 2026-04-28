@@ -187,7 +187,7 @@ def list_expenses(
         params.append(category)
 
     if sort == "date_desc":
-        sql += " ORDER BY date DESC, created_at DESC"
+         sql += " ORDER BY created_at DESC"
     else:
         sql += " ORDER BY created_at DESC"
 
