@@ -1,8 +1,8 @@
-# Expense Tracker
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/bc0d3330-fc1a-4f23-8573-6eadd19af11c" /># Expense Tracker
 
 A minimal full-stack expense tracking app — **FastAPI backend + vanilla HTML/JS frontend**.
 
-**Live app:** https://YOUR_FRONTEND_URL
+**Live app:** https://expense-tracker-virid-ten-84.vercel.app/
 **Backend API:** https://expense-tracker-backend-jvl8.onrender.com
 **API Docs:** https://expense-tracker-backend-jvl8.onrender.com/docs
 
