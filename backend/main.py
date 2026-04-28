@@ -189,7 +189,7 @@ def list_expenses(
     if sort == "date_desc":
          sql += " ORDER BY created_at DESC"
     else:
-        sql += " ORDER BY created_at DESC"
+        sql += " ORDER BY created_at ASC"
 
     with get_db() as conn:
         rows = conn.execute(sql, params).fetchall()
