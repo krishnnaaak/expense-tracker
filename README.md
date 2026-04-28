@@ -1,4 +1,4 @@
-<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/bc0d3330-fc1a-4f23-8573-6eadd19af11c" /># Expense Tracker
+# Expense Tracker
 
 A minimal full-stack expense tracking app — **FastAPI backend + vanilla HTML/JS frontend**.
 
