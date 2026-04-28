@@ -2,9 +2,9 @@
 
 A minimal full-stack expense tracking app — **FastAPI backend + vanilla HTML/JS frontend**.
 
-**Live app:** https://expense-tracker-virid-ten-84.vercel.app/
-**Backend API:** https://expense-tracker-backend-jvl8.onrender.com
-**API Docs:** https://expense-tracker-backend-jvl8.onrender.com/docs
+* **Live App:** https://expense-tracker-virid-ten-84.vercel.app/
+* **Backend API:** https://expense-tracker-backend-jvl8.onrender.com
+* **API Docs:** https://expense-tracker-backend-jvl8.onrender.com/docs
 
 ---
 
@@ -24,6 +24,7 @@ uvicorn main:app --reload --port 8000
 # Update API_BASE in frontend/index.html to http://localhost:8000
 # Then open in browser:
 open frontend/index.html
+
 # Or serve with:
 npx serve frontend
 ```
@@ -52,13 +53,17 @@ docker run -p 8000:8000 -v $(pwd)/data:/data expense-tracker-api
 
 `amount` is stored as `INTEGER` paise in SQLite (₹10.50 → `1050`).
 
-Floating-point arithmetic is unsuitable for money: `0.1 + 0.2 = 0.30000000000000004`. Storing amounts as the smallest currency unit eliminates rounding errors entirely. The API accepts and returns amounts as decimal strings (`"10.50"`) using Python's `Decimal`.
+Floating-point arithmetic is unsuitable for money: `0.1 + 0.2 = 0.30000000000000004`.
+Storing amounts as the smallest currency unit eliminates rounding errors entirely.
+
+The API accepts and returns amounts as decimal strings (`"10.50"`) using Python's `Decimal`.
 
 ---
 
 ### 2. Idempotency Key on POST /expenses
 
-The frontend generates a `crypto.randomUUID()` **once per submission** and sends it as `idempotency_key`. The backend enforces a `UNIQUE` constraint.
+The frontend generates a `crypto.randomUUID()` once per submission and sends it as `idempotency_key`.
+The backend enforces a `UNIQUE` constraint.
 
 This ensures:
 
@@ -106,20 +111,20 @@ Chosen for:
 
 This system is designed to behave correctly under realistic conditions:
 
-* **Duplicate submissions:** handled via idempotency key
-* **Page refresh after submit:** data persists (SQLite)
-* **Slow backend / cold start:** frontend shows error states
-* **Retry safety:** repeated POST returns same record
+* Duplicate submissions → handled via idempotency key
+* Page refresh after submit → data persists (SQLite)
+* Slow backend / cold start → frontend shows error states
+* Retry safety → repeated POST returns the same record
 
 ---
 
 ## What I Intentionally Did Not Do
 
-* **Authentication** — single-user scope
-* **Pagination** — unnecessary for small datasets
-* **Edit/Delete** — not required
-* **ORM (SQLAlchemy)** — direct SQL keeps system simple
-* **Complex frontend framework** — avoided unnecessary complexity
+* Authentication — single-user scope
+* Pagination — unnecessary for small datasets
+* Edit/Delete — not required
+* ORM (SQLAlchemy) — direct SQL keeps system simple
+* Complex frontend framework — avoided unnecessary complexity
 
 ---
 
@@ -147,7 +152,7 @@ This system is designed to behave correctly under realistic conditions:
 * ✅ Idempotency (retry-safe POST)
 * ✅ Correct money handling (no float precision issues)
 * ✅ Filter by category
-* ✅ Sort by newest (created_at)
+* ✅ Sort by newest (`created_at`)
 * ✅ Total calculation (frontend)
 * ✅ Category summary
 * ✅ Validation (client + server)
@@ -161,5 +166,3 @@ This system is designed to behave correctly under realistic conditions:
 * The deployed app includes a few sample entries for demonstration
 * Try clicking "Add Expense" multiple times quickly → only one entry will be created
 * Sorting reflects actual creation time, not just date
-
----
